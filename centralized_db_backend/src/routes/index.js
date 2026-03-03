@@ -1,13 +1,27 @@
+'use strict';
+
 const express = require('express');
 const healthController = require('../controllers/health');
 
+const authRoutes = require('./auth');
+const schemaRoutes = require('./schema');
+const crudRoutes = require('./crud');
+const sqlRoutes = require('./sql');
+
 const router = express.Router();
-// Health endpoint
+
+/**
+ * @swagger
+ * tags:
+ *   - name: Health
+ *     description: Service health checks
+ */
 
 /**
  * @swagger
  * /:
  *   get:
+ *     tags: [Health]
  *     summary: Health endpoint
  *     responses:
  *       200:
@@ -29,7 +43,17 @@ const router = express.Router();
  *                 environment:
  *                   type: string
  *                   example: development
+ *                 db:
+ *                   type: object
+ *                   properties:
+ *                     ok:
+ *                       type: boolean
  */
 router.get('/', healthController.check.bind(healthController));
+
+router.use('/auth', authRoutes);
+router.use('/schema', schemaRoutes);
+router.use('/data', crudRoutes);
+router.use('/sql', sqlRoutes);
 
 module.exports = router;
