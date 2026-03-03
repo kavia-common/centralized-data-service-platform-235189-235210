@@ -8,7 +8,11 @@ let pool;
 
 /**
  * Uses the environment variables exposed by the DB container:
- * POSTGRES_URL, POSTGRES_USER, POSTGRES_PASSWORD, POSTGRES_DB, POSTGRES_PORT
+ * - POSTGRES_URL, POSTGRES_USER, POSTGRES_PASSWORD, POSTGRES_DB, POSTGRES_PORT
+ *
+ * Also supports common aliases used by many platforms:
+ * - DATABASE_URL (preferred if set)
+ * - PGHOST/PGUSER/PGPASSWORD/PGDATABASE/PGPORT (fallback parts)
  */
 
 // PUBLIC_INTERFACE
@@ -16,17 +20,25 @@ function getPool() {
   /** Singleton pool instance. */
   if (pool) return pool;
 
-  const connectionString = getEnv('POSTGRES_URL', { required: false });
+  // Prefer a full connection string when provided.
+  // DATABASE_URL is a common convention; POSTGRES_URL is the db container contract.
+  const connectionString =
+    getEnv('DATABASE_URL', { required: false }) || getEnv('POSTGRES_URL', { required: false });
 
   // Prefer URL if available; otherwise construct connection from parts.
   const config = connectionString
     ? { connectionString }
     : {
-        host: getEnv('POSTGRES_HOST', { required: false }), // optional fallback if provided
-        user: getEnv('POSTGRES_USER', { required: true }),
-        password: getEnv('POSTGRES_PASSWORD', { required: true }),
-        database: getEnv('POSTGRES_DB', { required: true }),
-        port: getEnvInt('POSTGRES_PORT', { required: true }),
+        host:
+          getEnv('POSTGRES_HOST', { required: false }) ||
+          getEnv('PGHOST', { required: false }) ||
+          'localhost',
+        user: getEnv('POSTGRES_USER', { required: false }) || getEnv('PGUSER', { required: true }),
+        password:
+          getEnv('POSTGRES_PASSWORD', { required: false }) || getEnv('PGPASSWORD', { required: true }),
+        database:
+          getEnv('POSTGRES_DB', { required: false }) || getEnv('PGDATABASE', { required: true }),
+        port: getEnvInt('POSTGRES_PORT', { required: false }) || getEnvInt('PGPORT', { required: true }),
       };
 
   pool = new Pool({
