@@ -1,0 +1,4 @@
+{
+    "command": "npm run test",
+    "working_directory": "/home/kavia/workspace/code-generation/centralized-data-service-platform-235189-235210/centralized_db_backend"
+}
